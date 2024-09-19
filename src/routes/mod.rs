@@ -1,12 +1,25 @@
 use axum::{http::StatusCode, response::IntoResponse, routing::get, Json, Router};
 use serde_json::{json, Value};
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
+
+#[derive(OpenApi)]
+#[openapi(
+    paths(get_root)
+)]
+struct ApiDoc;
 
 pub fn router() -> Router {
     Router::new()
+        .merge(SwaggerUi::new("/swagger").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .route("/", get(get_root))
         .fallback(not_found)
 }
 
+#[utoipa::path(
+    get,
+    path = "/",
+)]
 async fn get_root() -> Json<Value> {
     Json(json!({
         "name": "ioun",
