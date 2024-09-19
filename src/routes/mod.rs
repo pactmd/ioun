@@ -3,6 +3,7 @@ use serde_json::{json, Value};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
+// TODO: once more stable use: https://crates.io/crates/utoipa-axum
 #[derive(OpenApi)]
 #[openapi(
     paths(get_root)
