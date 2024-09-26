@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:16.4
+    restart: always
+    user: postgres
+    secrets:
+      - postgres-password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres-password
+    # TODO: use expose once testing is done
+    # expose:
+    #   - 5432
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: .
+      target: final
+    ports:
+      - 8080:8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+secrets:
+  postgres-password:
+    # because of this issue: https://github.com/docker/compose/issues/8305
+    # if this file is missing there will be no warning but the container will break if you're using windows
+    file: secrets/postgres-password
+
+volumes:
+  postgres-data:
