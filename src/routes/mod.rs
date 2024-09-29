@@ -23,7 +23,7 @@ pub fn router() -> Router {
 )]
 async fn get_root() -> Json<Value> {
     Json(json!({
-        "name": "ioun",
+        "name": env!("CARGO_PKG_NAME"),
         "version": env!("CARGO_PKG_VERSION"),
     }))
 }
