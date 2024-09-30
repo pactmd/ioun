@@ -17,9 +17,7 @@ async fn main() {
         )
         .with(tracing_subscriber::fmt::layer())
         .init();
-
-    tracing::warn!("warn works");
-
+    
     // Create and bind TCP listener
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080")
         .await
@@ -27,6 +25,9 @@ async fn main() {
 
     // Create app config
     let app_config = ioun::AppConfig::new().await;
+
+    // Run database migrations
+    app_config.run_postgres_migrations().await;
 
     // Serve the application
     axum::serve(listener, app_config.service()).await.unwrap();
