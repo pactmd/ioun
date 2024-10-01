@@ -2,11 +2,11 @@ use axum::{extract::MatchedPath, http::Request, Router};
 use sqlx::{postgres::PgPoolOptions, PgPool};
 use tower_http::trace::TraceLayer;
 use tracing::info_span;
-use utoipa::OpenApi;
-use utoipa_swagger_ui::SwaggerUi;
 
+mod models;
 mod routes;
 
+#[derive(Clone)]
 pub struct AppConfig {
     pub postgres_pool: PgPool,
 }
@@ -37,9 +37,11 @@ impl AppConfig {
 
     pub fn service(&self) -> Router {
         Router::new()
-            .with_state(self.postgres_pool.clone())
-            .merge(SwaggerUi::new("/swagger").url("/api-docs/openapi.json", routes::ApiDoc::openapi()))
+            // Add all other routes
             .merge(routes::router())
+            // Put config into server state
+            .with_state(self.clone())
+            // Add tracing middleware
             .layer(TraceLayer::new_for_http()
                 .make_span_with(|request: &Request<_>| {
                     let matched_path = request

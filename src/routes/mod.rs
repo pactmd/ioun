@@ -1,25 +1,18 @@
 use axum::{http::StatusCode, response::IntoResponse, routing::get, Json, Router};
 use serde_json::{json, Value};
-use utoipa::OpenApi;
 
-// TODO: once more stable use: https://crates.io/crates/utoipa-axum
-#[derive(OpenApi)]
-#[openapi(
-    paths(get_root)
-)]
-pub struct ApiDoc;
+use crate::AppConfig;
 
-pub fn router() -> Router {
+pub mod auth;
+
+pub fn router() -> Router<AppConfig> {
     Router::new()
-        .route("/", get(get_root))
+        .route("/", get(root))
+        .nest("/auth", auth::router())
         .fallback(not_found)
 }
 
-#[utoipa::path(
-    get,
-    path = "/",
-)]
-async fn get_root() -> Json<Value> {
+async fn root() -> Json<Value> {
     Json(json!({
         "name": env!("CARGO_PKG_NAME"),
         "version": env!("CARGO_PKG_VERSION"),
