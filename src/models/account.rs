@@ -1,5 +1,5 @@
 use argon2::{password_hash::{rand_core, PasswordHasher, SaltString}, Argon2};
-use serde::{Deserialize, Serialize};
+use serde::{ser::SerializeStruct, Deserialize, Serialize};
 use time::OffsetDateTime;
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -39,7 +39,6 @@ impl AccountCredentials {
     }
 }
 
-#[derive(Serialize)]
 pub struct Account {
     id: Uuid,
     email: String,
@@ -59,6 +58,22 @@ impl std::fmt::Debug for Account {
             .field("created_at", &self.created_at)
             .field("updated_at", &self.updated_at)
             .finish()
+    }
+}
+
+impl Serialize for Account {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer
+    {
+        let mut state = serializer.serialize_struct("Account", 6)?;
+        state.serialize_field("id", &self.id)?;
+        state.serialize_field("email", &self.email)?;
+        state.serialize_field("password_hash", &"*****")?;
+        state.serialize_field("username", &self.username)?;
+        state.serialize_field("created_at", &self.created_at)?;
+        state.serialize_field("updated_at", &self.updated_at)?;
+        state.end()
     }
 }
 
