@@ -2,9 +2,15 @@ use axum::{extract::MatchedPath, http::Request, Router};
 use sqlx::{postgres::PgPoolOptions, PgPool};
 use tower_http::trace::TraceLayer;
 use tracing::info_span;
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 
 mod models;
 mod routes;
+
+#[derive(OpenApi)]
+#[openapi()]
+struct ApiDoc;
 
 #[derive(Clone)]
 pub struct AppConfig {
@@ -37,6 +43,9 @@ impl AppConfig {
 
     pub fn service(&self) -> Router {
         Router::new()
+            .merge(SwaggerUi::new("/docs")
+                .url("/docs/openapi.json", ApiDoc::openapi())
+            )
             // Add all other routes
             .merge(routes::router())
             // Put config into server state
