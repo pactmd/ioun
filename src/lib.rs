@@ -45,6 +45,7 @@ impl AppConfig {
 
     pub fn service(&self) -> Router {
         Router::new()
+            // Add swagger-ui and openapi routes
             .merge(SwaggerUi::new("/docs")
                 .url("/docs/openapi.json", ApiDoc::openapi())
             )
