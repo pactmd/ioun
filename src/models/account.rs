@@ -1,3 +1,4 @@
+use argon2::{password_hash::{rand_core, PasswordHasher, SaltString}, Argon2};
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use uuid::Uuid;
@@ -19,6 +20,20 @@ impl std::fmt::Debug for AccountCredentials {
             .field("email", &self.email)
             .field("password", &"*****")
             .finish()
+    }
+}
+
+impl AccountCredentials {
+    pub fn hash_password(mut self) -> Self {
+        let argon2 = Argon2::default();
+        let salt = SaltString::generate(&mut rand_core::OsRng);
+
+        self.password = argon2
+            .hash_password(self.password.as_bytes(), &salt)
+            .unwrap()
+            .to_string();
+
+        self
     }
 }
 
