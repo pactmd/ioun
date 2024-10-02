@@ -1,17 +1,29 @@
-use axum::{http::StatusCode, response::IntoResponse, routing::get, Json, Router};
+use axum::{http::StatusCode, response::IntoResponse, Json, Router};
 use serde_json::{json, Value};
+use utoipa::OpenApi;
+use utoipa_axum::{router::OpenApiRouter, routes};
+use utoipa_swagger_ui::SwaggerUi;
 
 use crate::AppConfig;
 
 pub mod auth;
 
+#[derive(OpenApi)]
+#[openapi()]
+struct ApiDoc;
+
 pub fn router() -> Router<AppConfig> {
-    Router::new()
-        .route("/", get(root))
+    let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
+        .routes(routes!(root))
         .nest("/auth", auth::router())
         .fallback(not_found)
+        .split_for_parts();
+
+    router.merge(SwaggerUi::new("/docs")
+        .url("/docs/openapi.json", api))
 }
 
+#[utoipa::path(get, path = "/")]
 async fn root() -> Json<Value> {
     Json(json!({
         "name": env!("CARGO_PKG_NAME"),

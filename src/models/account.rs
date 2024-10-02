@@ -1,26 +1,18 @@
 use argon2::{password_hash::{rand_core, PasswordHasher, SaltString}, Argon2};
-use serde::{Deserialize, Serialize};
+use serde::{ser::SerializeStruct, Deserialize, Serialize};
 use time::OffsetDateTime;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Deserialize)]
-pub struct AccountBody<T> {
+#[derive(Deserialize, ToSchema)]
+pub struct AccountBody<T: ToSchema> {
     pub account: T,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 pub struct AccountCredentials {
     pub email: String,
     pub password: String,
-}
-
-impl std::fmt::Debug for AccountCredentials {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("AccountCredentials")
-            .field("email", &self.email)
-            .field("password", &"*****")
-            .finish()
-    }
 }
 
 impl AccountCredentials {
@@ -37,27 +29,23 @@ impl AccountCredentials {
     }
 }
 
-#[derive(Serialize)]
+impl std::fmt::Debug for AccountCredentials {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AccountCredentials")
+            .field("email", &self.email)
+            .field("password", &"*****")
+            .finish()
+    }
+}
+
 pub struct Account {
     id: Uuid,
     email: String,
+    #[allow(dead_code)]
     password_hash: String,
     username: Option<String>,
     created_at: OffsetDateTime,
     updated_at: OffsetDateTime,
-}
-
-impl std::fmt::Debug for Account {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Account")
-            .field("id", &self.id)
-            .field("email", &self.email)
-            .field("password_hash", &"*****")
-            .field("username", &self.username)
-            .field("created_at", &self.created_at)
-            .field("updated_at", &self.updated_at)
-            .finish()
-    }
 }
 
 impl Account {
@@ -85,5 +73,34 @@ impl Account {
             command.email,
             command.password,
         ).fetch_one(&mut **transaction).await
+    }
+}
+
+impl std::fmt::Debug for Account {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Account")
+            .field("id", &self.id)
+            .field("email", &self.email)
+            .field("password_hash", &"*****")
+            .field("username", &self.username)
+            .field("created_at", &self.created_at)
+            .field("updated_at", &self.updated_at)
+            .finish()
+    }
+}
+
+impl Serialize for Account {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer
+    {
+        let mut state = serializer.serialize_struct("Account", 6)?;
+        state.serialize_field("id", &self.id)?;
+        state.serialize_field("email", &self.email)?;
+        state.serialize_field("password_hash", &"*****")?;
+        state.serialize_field("username", &self.username)?;
+        state.serialize_field("created_at", &self.created_at)?;
+        state.serialize_field("updated_at", &self.updated_at)?;
+        state.end()
     }
 }

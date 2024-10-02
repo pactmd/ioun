@@ -37,7 +37,7 @@ impl AppConfig {
 
     pub fn service(&self) -> Router {
         Router::new()
-            // Add all other routes
+            // Add routes
             .merge(routes::router())
             // Put config into server state
             .with_state(self.clone())

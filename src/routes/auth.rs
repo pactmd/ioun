@@ -1,12 +1,14 @@
-use axum::{extract::State, routing::post, Json, Router};
+use axum::{extract::State, Json};
+use utoipa_axum::{router::OpenApiRouter, routes};
 
 use crate::{models::account::{Account, AccountBody, AccountCredentials}, AppConfig};
 
-pub fn router() -> Router<AppConfig> {
-    Router::new()
-        .route("/signup", post(signup))
+pub fn router() -> OpenApiRouter<AppConfig> {
+    OpenApiRouter::new()
+        .routes(routes!(signup))
 }
 
+#[utoipa::path(post, path = "/signup")]
 async fn signup(
     State(app_config): State<AppConfig>,
     Json(req): Json<AccountBody<AccountCredentials>>,
