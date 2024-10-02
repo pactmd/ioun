@@ -4,10 +4,12 @@ use tower_http::trace::TraceLayer;
 use tracing::info_span;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
+use utoipauto::utoipauto;
 
 mod models;
 mod routes;
 
+#[utoipauto]
 #[derive(OpenApi)]
 #[openapi()]
 struct ApiDoc;

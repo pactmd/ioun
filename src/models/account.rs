@@ -1,14 +1,16 @@
 use argon2::{password_hash::{rand_core, PasswordHasher, SaltString}, Argon2};
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
+#[aliases(AccountBodyCredentials = AccountBody<AccountCredentials>)]
 pub struct AccountBody<T> {
     pub account: T,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 pub struct AccountCredentials {
     pub email: String,
     pub password: String,

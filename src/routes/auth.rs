@@ -7,6 +7,11 @@ pub fn router() -> Router<AppConfig> {
         .route("/signup", post(signup))
 }
 
+#[utoipa::path(
+    post,
+    path = "/auth/signup",
+    request_body = AccountBodyCredentials,
+)]
 async fn signup(
     State(app_config): State<AppConfig>,
     Json(req): Json<AccountBody<AccountCredentials>>,

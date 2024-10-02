@@ -12,6 +12,7 @@ pub fn router() -> Router<AppConfig> {
         .fallback(not_found)
 }
 
+#[utoipa::path(get, path = "/")]
 async fn root() -> Json<Value> {
     Json(json!({
         "name": env!("CARGO_PKG_NAME"),
