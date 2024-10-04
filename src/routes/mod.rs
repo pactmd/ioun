@@ -1,5 +1,6 @@
-use axum::{http::StatusCode, response::IntoResponse, Json, Router};
+use axum::{http::StatusCode, response::{IntoResponse, Response}, Json, Router};
 use serde_json::{json, Value};
+use thiserror::Error;
 use utoipa::OpenApi;
 use utoipa_axum::{router::OpenApiRouter, routes};
 use utoipa_swagger_ui::SwaggerUi;
@@ -16,7 +17,7 @@ pub fn router() -> Router<AppConfig> {
     let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
         .routes(routes!(root))
         .nest("/auth", auth::router())
-        .fallback(not_found)
+        .fallback(|| async {ApiError::NotFound})
         .split_for_parts();
 
     router.merge(SwaggerUi::new("/docs")
@@ -31,7 +32,23 @@ async fn root() -> Json<Value> {
     }))
 }
 
-// TODO: use error struct here
-async fn not_found() -> impl IntoResponse {
-    (StatusCode::NOT_FOUND, "the requested route does not exist")
+#[derive(Error, Debug)]
+pub enum ApiError {
+    #[error("NotFound")]
+    NotFound,
+}
+
+impl IntoResponse for ApiError {
+    fn into_response(self) -> Response {
+        let status = match self {
+            Self::NotFound => StatusCode::NOT_FOUND,
+        };
+
+        (
+            status,
+            Json(json!({
+                "error": self.to_string()
+            }))
+        ).into_response()
+    }
 }
