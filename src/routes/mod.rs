@@ -1,4 +1,4 @@
-use axum::{http::StatusCode, response::{IntoResponse, Response}, Json, Router};
+use axum::{extract::FromRequest, http::StatusCode, response::{IntoResponse, Response}, Router};
 use serde_json::{json, Value};
 use thiserror::Error;
 use utoipa::OpenApi;
@@ -32,8 +32,25 @@ async fn root() -> Json<Value> {
     }))
 }
 
+#[derive(FromRequest)]
+#[from_request(via(axum::Json), rejection(ApiError))]
+pub struct Json<T>(T);
+
+impl<T> IntoResponse for Json<T>
+where
+    axum::Json<T>: IntoResponse,
+{
+    fn into_response(self) -> Response {
+        axum::Json(self.0).into_response()
+    }
+}
+
 #[derive(Error, Debug)]
 pub enum ApiError {
+    #[error("SqlxError: {0}")]
+    SqlxError(#[from] sqlx::Error),
+    #[error("JsonRejection: {0}")]
+    JsonRejection(#[from] axum::extract::rejection::JsonRejection),
     #[error("NotFound")]
     NotFound,
 }
@@ -41,6 +58,8 @@ pub enum ApiError {
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
         let status = match self {
+            Self::SqlxError(..) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::JsonRejection(ref rejection) => rejection.status(),
             Self::NotFound => StatusCode::NOT_FOUND,
         };
 
