@@ -16,16 +16,15 @@ pub struct AccountCredentials {
 }
 
 impl AccountCredentials {
-    pub fn hash_password(mut self) -> Self {
+    pub fn hash_password(mut self) -> Result<Self, argon2::password_hash::Error> {
         let argon2 = Argon2::default();
         let salt = SaltString::generate(&mut rand_core::OsRng);
 
         self.password = argon2
-            .hash_password(self.password.as_bytes(), &salt)
-            .unwrap()
+            .hash_password(self.password.as_bytes(), &salt)?
             .to_string();
 
-        self
+        Ok(self)
     }
 }
 

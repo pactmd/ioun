@@ -21,6 +21,8 @@ pub enum AppError {
     SqlxError(#[from] sqlx::Error),
     #[error("JsonRejection: {0}")]
     JsonRejection(#[from] axum::extract::rejection::JsonRejection),
+    #[error("HashError: {0}")]
+    HashError(#[from] argon2::password_hash::Error),
     #[error("NotFound")]
     NotFound,
 }
@@ -30,6 +32,7 @@ impl IntoResponse for AppError {
         let status = match self {
             Self::SqlxError(..) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::JsonRejection(ref rejection) => rejection.status(),
+            Self::HashError(..) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::NotFound => StatusCode::NOT_FOUND,
         };
 

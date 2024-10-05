@@ -16,7 +16,7 @@ async fn signup(
     // TODO: issue session
 
     // Hash password
-    let hashed_credentials = req.account.hash_password();
+    let hashed_credentials = req.account.hash_password()?;
 
     let mut transaction = app_config.postgres_pool.begin().await?;
 
