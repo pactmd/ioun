@@ -3,6 +3,7 @@ use sqlx::{postgres::PgPoolOptions, PgPool};
 use tower_http::trace::TraceLayer;
 use tracing::info_span;
 
+mod errors;
 mod models;
 mod routes;
 
