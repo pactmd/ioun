@@ -21,7 +21,7 @@ async fn main() {
     // Create and bind TCP listener
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080")
         .await
-        .unwrap();
+        .expect("Could not create TcpListener");
 
     // Create app config
     let app_config = ioun::AppConfig::new().await;
@@ -30,5 +30,7 @@ async fn main() {
     app_config.run_postgres_migrations().await;
 
     // Serve the application
-    axum::serve(listener, app_config.service()).await.unwrap();
+    axum::serve(listener, app_config.service())
+        .await
+        .expect("Could not serve the application");
 }

@@ -4,8 +4,8 @@ version = "0.0.1"
 edition = "2021"
 
 [dependencies]
-argon2 = "0.5.3"
-axum = { version = "0.7.7", features = ["tracing"] }
+argon2 = { version = "0.5.3", features = ["std"] }
+axum = { version = "0.7.7", features = ["tracing", "macros"] }
 dotenvy = "0.15.7"
 serde = "1.0.210"
 serde_json = "1.0.128"
@@ -16,6 +16,7 @@ sqlx =  { version = "0.8.2", features = [
     "time",
     "uuid",
 ] }
+thiserror = "1.0.64"
 time = { version = "0.3.36", features = ["serde-human-readable"] }
 tokio = { version = "1.40.0", features = ["full"] }
 tower-http = { version = "0.6.1", features = ["trace"] }

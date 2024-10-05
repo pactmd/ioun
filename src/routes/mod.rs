@@ -1,10 +1,10 @@
-use axum::{http::StatusCode, response::IntoResponse, Json, Router};
+use axum::Router;
 use serde_json::{json, Value};
 use utoipa::OpenApi;
 use utoipa_axum::{router::OpenApiRouter, routes};
 use utoipa_swagger_ui::SwaggerUi;
 
-use crate::AppConfig;
+use crate::{errors::{AppError, Json}, AppConfig};
 
 pub mod auth;
 
@@ -16,7 +16,7 @@ pub fn router() -> Router<AppConfig> {
     let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
         .routes(routes!(root))
         .nest("/auth", auth::router())
-        .fallback(not_found)
+        .fallback(|| async {AppError::NotFound})
         .split_for_parts();
 
     router.merge(SwaggerUi::new("/docs")
@@ -29,9 +29,4 @@ async fn root() -> Json<Value> {
         "name": env!("CARGO_PKG_NAME"),
         "version": env!("CARGO_PKG_VERSION"),
     }))
-}
-
-// TODO: use error struct here
-async fn not_found() -> impl IntoResponse {
-    (StatusCode::NOT_FOUND, "the requested route does not exist")
 }
