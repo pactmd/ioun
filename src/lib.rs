@@ -24,7 +24,7 @@ impl AppConfig {
             .expect("Postgres connection failed");
 
         AppConfig {
-            postgres_pool
+            postgres_pool,
         }
     }
 
