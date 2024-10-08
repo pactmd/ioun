@@ -12,22 +12,23 @@ async fn main() {
                 format!(
                     "{}=debug,tower_http=debug,axum::rejection=trace",
                     env!("CARGO_CRATE_NAME")
-                ).into()
+                )
+                .into()
             }),
         )
         .with(tracing_subscriber::fmt::layer())
         .init();
-    
-    // Create and bind TCP listener
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080")
-        .await
-        .expect("Could not create TcpListener");
 
     // Create app config
     let app_config = ioun::AppConfig::new().await;
 
     // Run database migrations
     app_config.run_postgres_migrations().await;
+
+    // Create and bind TCP listener
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080")
+        .await
+        .expect("Could not create TcpListener");
 
     // Serve the application
     axum::serve(listener, app_config.service())

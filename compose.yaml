@@ -10,11 +10,8 @@ services:
       - postgres-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD_FILE=/run/secrets/postgres-password
-    # TODO: use expose once testing is done
-    # expose:
-    #   - 5432
-    ports:
-      - 5432:5432
+    expose:
+      - 5432
     healthcheck:
       test: [ "CMD", "pg_isready" ]
       interval: 10s
@@ -23,9 +20,11 @@ services:
 
   server:
     container_name: server
-    build:
-      context: .
-      target: final
+    # Uncomment the following lines if you want to test local code changes
+    # build:
+    #   context: .
+    #   target: final
+    image: ghcr.io/pactmd/ioun:latest
     environment:
       - RUST_LOG=info
     env_file:

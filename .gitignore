@@ -1,7 +1,13 @@
+# builds
 /target
-/secrets
 
-# Local env files
-.env
-.env.*
-!.env.example
+# secrets
+secrets/*
+!/secrets/*.sample
+
+# .env files
+.env*
+!.env*.sample
+
+# docker compose override
+compose.override.yml
