@@ -2,6 +2,11 @@ name: Build release image
 on:
   release:
     types: [published]
+  push:
+    branches: [main]
+    tags: [v*]
+  pull_request:
+    branches: [main]
 
 env:
   REGISTRY: ghcr.io
@@ -45,7 +50,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
+          push: ${{ github.event_name == 'release' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
