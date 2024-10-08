@@ -1,4 +1,7 @@
-use argon2::{password_hash::{rand_core, PasswordHasher, SaltString}, Argon2};
+use argon2::{
+    password_hash::{rand_core, PasswordHasher, SaltString},
+    Argon2,
+};
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 use time::OffsetDateTime;
 use utoipa::ToSchema;
@@ -71,7 +74,9 @@ impl Account {
             "#,
             command.email,
             command.password,
-        ).fetch_one(&mut **transaction).await
+        )
+        .fetch_one(&mut **transaction)
+        .await
     }
 }
 
@@ -91,7 +96,7 @@ impl std::fmt::Debug for Account {
 impl Serialize for Account {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: serde::Serializer
+        S: serde::Serializer,
     {
         let mut state = serializer.serialize_struct("Account", 6)?;
         state.serialize_field("id", &self.id)?;

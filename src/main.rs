@@ -12,7 +12,8 @@ async fn main() {
                 format!(
                     "{}=debug,tower_http=debug,axum::rejection=trace",
                     env!("CARGO_CRATE_NAME")
-                ).into()
+                )
+                .into()
             }),
         )
         .with(tracing_subscriber::fmt::layer())

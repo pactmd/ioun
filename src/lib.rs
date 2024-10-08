@@ -16,22 +16,21 @@ impl AppConfig {
     pub async fn new() -> Self {
         tracing::info!("Initializing postgres connection");
 
-        let database_url = std::env::var("DATABASE_URL")
-            .expect("DATABASE_URL not set");
+        let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL not set");
 
-        let postgres_pool = PgPoolOptions::new().connect(&database_url)
+        let postgres_pool = PgPoolOptions::new()
+            .connect(&database_url)
             .await
             .expect("Postgres connection failed");
 
-        AppConfig {
-            postgres_pool,
-        }
+        AppConfig { postgres_pool }
     }
 
     pub async fn run_postgres_migrations(&self) {
         tracing::info!("Running postgres migrations");
 
-        sqlx::migrate!().run(&self.postgres_pool)
+        sqlx::migrate!()
+            .run(&self.postgres_pool)
             .await
             .expect("Postgres migrations failed");
     }
@@ -43,8 +42,8 @@ impl AppConfig {
             // Put config into server state
             .with_state(self.clone())
             // Add tracing middleware
-            .layer(TraceLayer::new_for_http()
-                .make_span_with(|request: &Request<_>| {
+            .layer(
+                TraceLayer::new_for_http().make_span_with(|request: &Request<_>| {
                     let matched_path = request
                         .extensions()
                         .get::<MatchedPath>()
@@ -55,7 +54,7 @@ impl AppConfig {
                         method = ?request.method(),
                         matched_path,
                     )
-                })
+                }),
             )
     }
 }

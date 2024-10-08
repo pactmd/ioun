@@ -1,11 +1,14 @@
 use axum::extract::State;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
-use crate::{errors::{AppError, Json}, models::account::{Account, AccountBody, AccountCredentials}, AppConfig};
+use crate::{
+    errors::{AppError, Json},
+    models::account::{Account, AccountBody, AccountCredentials},
+    AppConfig,
+};
 
 pub fn router() -> OpenApiRouter<AppConfig> {
-    OpenApiRouter::new()
-        .routes(routes!(signup))
+    OpenApiRouter::new().routes(routes!(signup))
 }
 
 #[utoipa::path(post, path = "/signup")]
@@ -21,10 +24,7 @@ async fn signup(
     let mut transaction = app_config.postgres_pool.begin().await?;
 
     // Insert into database
-    let result = Account::insert(
-        &hashed_credentials,
-        &mut transaction
-    ).await?;
+    let result = Account::insert(&hashed_credentials, &mut transaction).await?;
 
     transaction.commit().await?;
 
