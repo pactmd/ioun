@@ -18,6 +18,20 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    container_name: redis
+    image: redis/redis-stack-server:7.2.0-v13
+    restart: always
+    volumes:
+      - redis-data:/data
+    expose:
+      - 6379
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   server:
     container_name: server
     # Uncomment the following lines if you want to test local code changes
@@ -43,3 +57,4 @@ secrets:
 
 volumes:
   postgres-data:
+  redis-data:
