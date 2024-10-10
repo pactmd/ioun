@@ -10,6 +10,8 @@ use validator::Validate;
 
 use crate::errors::AppError;
 
+use super::Unique;
+
 #[derive(Deserialize, ToSchema)]
 pub struct AccountBody<T: ToSchema> {
     pub account: T,
@@ -36,7 +38,7 @@ pub struct Account {
     pub id: Uuid,
     email: String,
     #[allow(dead_code)]
-    password_hash: String,
+    pub password_hash: String,
     username: Option<String>,
     created_at: OffsetDateTime,
     updated_at: OffsetDateTime,
@@ -74,6 +76,30 @@ impl Account {
         .await?;
 
         Ok(account)
+    }
+
+    pub async fn get(
+        unique: Unique,
+        transaction: &mut sqlx::Transaction<'_, sqlx::Postgres>
+    ) -> Result<Option<Self>, sqlx::Error> {
+        sqlx::query_as!(
+            Self,
+            r#"
+            SELECT
+                id,
+                email,
+                password_hash,
+                username AS "username?",
+                created_at,
+                updated_at
+            FROM account
+            WHERE $1 = $2
+            "#,
+            unique.key(),
+            unique.value(),
+        )
+        .fetch_optional(&mut **transaction)
+        .await
     }
 }
 
