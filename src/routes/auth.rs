@@ -6,7 +6,7 @@ use validator::Validate;
 
 use crate::{
     errors::{AppError, AppResult, Json},
-    models::{account::{Account, AccountBody, AccountCredentials}, session::{Scope, Session}, Unique},
+    models::{account::{Account, AccountBody, AccountCredentials}, session::{Scope, Session}},
     AppConfig,
 };
 
@@ -45,7 +45,7 @@ async fn signup(
     })))
 }
 
-#[utoipa::path(post, path = "(signin")]
+#[utoipa::path(post, path = "/signin")]
 async fn signin(
     State(app_config): State<AppConfig>,
     Json(req): Json<AccountBody<AccountCredentials>>,
@@ -55,7 +55,7 @@ async fn signin(
 
     // Get user with provided email
     let mut transaction = app_config.postgres_pool.begin().await?;
-    let account = Account::get(Unique::Email(req.account.email), &mut transaction).await?;
+    let account = Account::get_email(req.account.email, &mut transaction).await?;
     transaction.commit().await?;
 
     let token = match account {
