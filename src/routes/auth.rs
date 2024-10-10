@@ -1,5 +1,6 @@
 use axum::extract::State;
 use utoipa_axum::{router::OpenApiRouter, routes};
+use validator::Validate;
 
 use crate::{
     errors::{AppError, Json},
@@ -16,6 +17,7 @@ async fn signup(
     State(app_config): State<AppConfig>,
     Json(req): Json<AccountBody<AccountCredentials>>,
 ) -> Result<Json<Account>, AppError> {
+    req.account.validate()?;
     // TODO: issue session
 
     // Hash password
