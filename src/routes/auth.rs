@@ -3,7 +3,7 @@ use utoipa_axum::{router::OpenApiRouter, routes};
 use validator::Validate;
 
 use crate::{
-    errors::{AppError, Json},
+    errors::{AppResult, Json},
     models::account::{Account, AccountBody, AccountCredentials},
     AppConfig,
 };
@@ -16,7 +16,7 @@ pub fn router() -> OpenApiRouter<AppConfig> {
 async fn signup(
     State(app_config): State<AppConfig>,
     Json(req): Json<AccountBody<AccountCredentials>>,
-) -> Result<Json<Account>, AppError> {
+) -> AppResult<Account> {
     req.account.validate()?;
     // TODO: issue session
 

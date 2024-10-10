@@ -6,6 +6,8 @@ use axum::{
 use serde_json::json;
 use thiserror::Error;
 
+pub type AppResult<T> = std::result::Result<Json<T>, AppError>;
+
 #[derive(FromRequest)]
 #[from_request(via(axum::Json), rejection(AppError))]
 pub struct Json<T>(pub T);
