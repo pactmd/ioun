@@ -8,6 +8,8 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
+use crate::errors::AppError;
+
 #[derive(Deserialize, ToSchema)]
 pub struct AccountBody<T: ToSchema> {
     pub account: T,
@@ -21,19 +23,6 @@ pub struct AccountCredentials {
     pub password: String,
 }
 
-impl AccountCredentials {
-    pub fn hash_password(mut self) -> Result<Self, argon2::password_hash::Error> {
-        let argon2 = Argon2::default();
-        let salt = SaltString::generate(&mut rand_core::OsRng);
-
-        self.password = argon2
-            .hash_password(self.password.as_bytes(), &salt)?
-            .to_string();
-
-        Ok(self)
-    }
-}
-
 impl std::fmt::Debug for AccountCredentials {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("AccountCredentials")
@@ -44,7 +33,7 @@ impl std::fmt::Debug for AccountCredentials {
 }
 
 pub struct Account {
-    id: Uuid,
+    pub id: Uuid,
     email: String,
     #[allow(dead_code)]
     password_hash: String,
@@ -53,12 +42,15 @@ pub struct Account {
     updated_at: OffsetDateTime,
 }
 
-impl Account {
+impl Account {  
     pub async fn insert(
         command: &AccountCredentials,
         transaction: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-    ) -> Result<Self, sqlx::Error> {
-        sqlx::query_as!(
+    ) -> Result<Self, AppError> {
+        let argon2 = Argon2::default();
+        let salt = SaltString::generate(&mut rand_core::OsRng);
+
+        let account = sqlx::query_as!(
             Self,
             r#"
             INSERT INTO account (
@@ -76,10 +68,12 @@ impl Account {
                 updated_at
             "#,
             command.email,
-            command.password,
+            argon2.hash_password(command.password.as_bytes(), &salt)?.to_string(),
         )
         .fetch_one(&mut **transaction)
-        .await
+        .await?;
+
+        Ok(account)
     }
 }
 

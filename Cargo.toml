@@ -6,7 +6,10 @@ edition = "2021"
 [dependencies]
 argon2 = { version = "0.5.3", features = ["std"] }
 axum = { version = "0.7.7", features = ["tracing", "macros"] }
+deadpool-redis = "0.18.0"
 dotenvy = "0.15.7"
+redis = { version = "0.27.4", features = ["json"] }
+redis-macros = "0.4.2"
 serde = "1.0.210"
 serde_json = "1.0.128"
 sqlx =  { version = "0.8.2", features = [

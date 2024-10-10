@@ -25,6 +25,10 @@ where
 pub enum AppError {
     #[error("SqlxError: {0}")]
     SqlxError(#[from] sqlx::Error),
+    #[error("RedisError: {0}")]
+    RedisError(#[from] redis::RedisError),
+    #[error("RedisPoolError: {0}")]
+    RedisPoolError(#[from] deadpool_redis::PoolError),
     #[error("JsonRejection: {0}")]
     JsonRejection(#[from] axum::extract::rejection::JsonRejection),
     #[error("HashError: {0}")]
@@ -41,6 +45,8 @@ impl IntoResponse for AppError {
 
         let status = match self {
             Self::SqlxError(..) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::RedisError(..) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::RedisPoolError(..) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::JsonRejection(ref rejection) => rejection.status(),
             Self::HashError(..) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::ValidationError(..) => StatusCode::BAD_REQUEST,
