@@ -10,8 +10,6 @@ use validator::Validate;
 
 use crate::errors::AppError;
 
-use super::Unique;
-
 #[derive(Deserialize, ToSchema)]
 pub struct AccountBody<T: ToSchema> {
     pub account: T,
@@ -52,23 +50,9 @@ impl Account {
         let argon2 = Argon2::default();
         let salt = SaltString::generate(&mut rand_core::OsRng);
 
-        let account = sqlx::query_as!(
+        let account = sqlx::query_file_as!(
             Self,
-            r#"
-            INSERT INTO account (
-                email, password_hash
-            )
-            VALUES (
-                $1, $2
-            )
-            RETURNING
-                id,
-                email,
-                password_hash,
-                username AS "username?",
-                created_at,
-                updated_at
-            "#,
+            "queries/user/insert.sql",
             command.email,
             argon2.hash_password(command.password.as_bytes(), &salt)?.to_string(),
         )
@@ -79,24 +63,26 @@ impl Account {
     }
 
     pub async fn get(
-        unique: Unique,
+        id: Uuid,
         transaction: &mut sqlx::Transaction<'_, sqlx::Postgres>
     ) -> Result<Option<Self>, sqlx::Error> {
-        sqlx::query_as!(
+        sqlx::query_file_as!(
             Self,
-            r#"
-            SELECT
-                id,
-                email,
-                password_hash,
-                username AS "username?",
-                created_at,
-                updated_at
-            FROM account
-            WHERE $1 = $2
-            "#,
-            unique.key(),
-            unique.value(),
+            "queries/user/get.sql",
+            id,
+        )
+        .fetch_optional(&mut **transaction)
+        .await
+    }
+
+    pub async fn get_email(
+        email: String,
+        transaction: &mut sqlx::Transaction<'_, sqlx::Postgres>
+    ) -> Result<Option<Self>, sqlx::Error> {
+        sqlx::query_file_as!(
+            Self,
+            "queries/user/get_email.sql",
+            email,
         )
         .fetch_optional(&mut **transaction)
         .await
