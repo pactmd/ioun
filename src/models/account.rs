@@ -6,15 +6,18 @@ use serde::{ser::SerializeStruct, Deserialize, Serialize};
 use time::OffsetDateTime;
 use utoipa::ToSchema;
 use uuid::Uuid;
+use validator::Validate;
 
 #[derive(Deserialize, ToSchema)]
 pub struct AccountBody<T: ToSchema> {
     pub account: T,
 }
 
-#[derive(Deserialize, ToSchema)]
+#[derive(Deserialize, ToSchema, Validate)]
 pub struct AccountCredentials {
+    #[validate(email)]
     pub email: String,
+    #[validate(length(min = 8, max = 32))]
     pub password: String,
 }
 

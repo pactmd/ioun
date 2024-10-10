@@ -31,3 +31,4 @@ utoipa = { version = "5.0.0-rc", features = [
 utoipa-axum = "0.1.0-rc.0"
 utoipa-swagger-ui = { version = "7.1.1-rc", features = ["axum", "vendored"] }
 uuid = { version = "1.10.0", features = ["v4", "serde", "fast-rng", "macro-diagnostics"]}
+validator = { version = "0.18.1", features = ["derive"] }
