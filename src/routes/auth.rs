@@ -1,10 +1,11 @@
 use axum::extract::State;
+use serde_json::{json, Value};
 use utoipa_axum::{router::OpenApiRouter, routes};
 use validator::Validate;
 
 use crate::{
     errors::{AppResult, Json},
-    models::account::{Account, AccountBody, AccountCredentials},
+    models::{account::{Account, AccountBody, AccountCredentials}, session::{Scope, Session}},
     AppConfig,
 };
 
@@ -16,19 +17,27 @@ pub fn router() -> OpenApiRouter<AppConfig> {
 async fn signup(
     State(app_config): State<AppConfig>,
     Json(req): Json<AccountBody<AccountCredentials>>,
-) -> AppResult<Account> {
+) -> AppResult<Value> {
+    // Validate credentials
     req.account.validate()?;
-    // TODO: issue session
-
-    // Hash password
-    let hashed_credentials = req.account.hash_password()?;
-
-    let mut transaction = app_config.postgres_pool.begin().await?;
 
     // Insert into database
-    let result = Account::insert(&hashed_credentials, &mut transaction).await?;
-
+    let mut transaction = app_config.postgres_pool.begin().await?;
+    let account = Account::insert(&req.account, &mut transaction).await?;
     transaction.commit().await?;
 
-    Ok(Json(result))
+    // Issue Session
+    let session = Session {
+        user_id: account.id,
+        scopes: Scope::all(),
+    };
+    let token = Session::insert(
+        &session,
+        app_config.session_expire,
+        &mut app_config.redis_pool.get().await?
+    ).await?;
+
+    Ok(Json(json!({
+        "token": token,
+    })))
 }

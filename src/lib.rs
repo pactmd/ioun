@@ -1,6 +1,7 @@
 use axum::{extract::MatchedPath, http::Request, Router};
 use derive_builder::Builder;
-use sqlx::{postgres::PgPoolOptions, PgPool};
+use sqlx::postgres::PgPoolOptions;
+use deadpool_redis::{Config, Runtime};
 use tower_http::trace::TraceLayer;
 use tracing::info_span;
 
@@ -10,12 +11,19 @@ mod routes;
 
 #[derive(Builder, Clone)]
 pub struct AppConfig {
+    #[builder(setter(into))]
     pub url: String,
-    pub postgres_pool: PgPool,
+    pub postgres_pool: sqlx::PgPool,
+    pub redis_pool: deadpool_redis::Pool,
+    #[builder(setter(into))]
+    session_expire: i64,
 }
 
 impl AppConfig {
     pub async fn new() -> Self {
+        // Read environment variables from .env file if present
+        dotenvy::dotenv().ok();
+
         // TODO: move into async closure
         tracing::info!(
             "Initializing postgres connection to {}",
@@ -39,6 +47,21 @@ impl AppConfig {
                     .await
                     .expect("Postgres connection failed"),
             )
+            .redis_pool(|| {
+                let redis_url = std::env::var("REDIS_URL").expect("REDIS_URL not set");
+                tracing::info!("Initializing redis connection to: {}", redis_url);
+                Config::from_url(redis_url)
+                    .builder()
+                    .expect("Error building redis pool")
+                    .runtime(Runtime::Tokio1)
+                    .build()
+                    .expect("Redis connection failed")
+            })
+            .session_expire(|| {
+                let session_expire_string = std::env::var("SESSION_EXPIRE").expect("SESSION_EXPIRE not set");
+                tracing::info!("Setting session to expire in: {} seconds", session_expire_string);
+                session_expire_string.parse::<i64>().expect("Could not parse SESSION_EXPIRE")
+            })
             .build()
             .expect("Could not build app config")
     }
@@ -47,7 +70,7 @@ impl AppConfig {
         tracing::info!("Checking for postgres migrations");
 
         sqlx::migrate!()
-            .run(&self.postgres_pool)
+            .run(&postgres_pool)
             .await
             .expect("Postgres migrations failed");
     }
