@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            INSERT INTO account (\n                email, password_hash\n            )\n            VALUES (\n                $1, $2\n            )\n            RETURNING\n                id,\n                email,\n                password_hash,\n                username AS \"username?\",\n                created_at,\n                updated_at\n            ",
+  "query": "INSERT INTO account (\n    email, password_hash\n)\nVALUES (\n    $1, $2\n)\nRETURNING\n    id,\n    email,\n    password_hash,\n    username AS \"username?\",\n    created_at,\n    updated_at",
   "describe": {
     "columns": [
       {
@@ -49,5 +49,5 @@
       false
     ]
   },
-  "hash": "636ca6ed22cbccf2bcf430e18f09689cd99a85083d6e79ad7212245e51f74728"
+  "hash": "330399905ee29e8cc18c2ec4b7a214db27b652802aec20c481833c8a3f4522c0"
 }

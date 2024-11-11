@@ -41,15 +41,19 @@ impl AppConfig {
             //         .await
             //         .expect("Postgres connection failed")
             // })
-            .postgres_pool(
+            .postgres_pool({
+                let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL not set");
+                tracing::info!("Initializing postgres connection to {}", database_url);
+
                 PgPoolOptions::new()
-                    .connect(&std::env::var("DATABASE_URL").expect("DATABASE_URL not set"))
+                    .connect(&database_url)
                     .await
-                    .expect("Postgres connection failed"),
-            )
-            .redis_pool(|| {
+                    .expect("Postgres connection failed")
+            })
+            .redis_pool({
                 let redis_url = std::env::var("REDIS_URL").expect("REDIS_URL not set");
                 tracing::info!("Initializing redis connection to: {}", redis_url);
+
                 Config::from_url(redis_url)
                     .builder()
                     .expect("Error building redis pool")
@@ -57,9 +61,10 @@ impl AppConfig {
                     .build()
                     .expect("Redis connection failed")
             })
-            .session_expire(|| {
+            .session_expire({
                 let session_expire_string = std::env::var("SESSION_EXPIRE").expect("SESSION_EXPIRE not set");
                 tracing::info!("Setting session to expire in: {} seconds", session_expire_string);
+
                 session_expire_string.parse::<i64>().expect("Could not parse SESSION_EXPIRE")
             })
             .build()
@@ -70,7 +75,7 @@ impl AppConfig {
         tracing::info!("Checking for postgres migrations");
 
         sqlx::migrate!()
-            .run(&postgres_pool)
+            .run(&self.postgres_pool)
             .await
             .expect("Postgres migrations failed");
     }
