@@ -5,10 +5,11 @@ edition = "2021"
 
 [dependencies]
 argon2 = { version = "0.5.3", features = ["std"] }
-axum = { version = "0.7.7", features = ["tracing", "macros"] }
+axum = { version = "0.7.9", features = ["tracing", "macros"] }
+derive_builder = "0.20.2"
 dotenvy = "0.15.7"
-serde = "1.0.210"
-serde_json = "1.0.128"
+serde = "1.0.215"
+serde_json = "1.0.133"
 sqlx =  { version = "0.8.2", features = [
     "runtime-tokio",
     "tls-rustls",
@@ -16,18 +17,18 @@ sqlx =  { version = "0.8.2", features = [
     "time",
     "uuid",
 ] }
-thiserror = "1.0.64"
+thiserror = "2.0.3"
 time = { version = "0.3.36", features = ["serde-human-readable"] }
-tokio = { version = "1.40.0", features = ["full"] }
-tower-http = { version = "0.6.1", features = ["trace"] }
-tracing = "0.1.40"
+tokio = { version = "1.41.0", features = ["full"] }
+tower-http = { version = "0.6.2", features = ["trace"] }
+tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
-utoipa = { version = "5.0.0-rc", features = [
+utoipa = { version = "5.2.0", features = [
     "axum_extras",
     "debug",
     "uuid",
     "preserve_order"
 ] }
-utoipa-axum = "0.1.0-rc.0"
-utoipa-swagger-ui = { version = "7.1.1-rc", features = ["axum", "vendored"] }
-uuid = { version = "1.10.0", features = ["v4", "serde", "fast-rng", "macro-diagnostics"]}
+utoipa-axum = "0.1.2"
+utoipa-swagger-ui = { version = "8.0.3", features = ["axum", "vendored"] }
+uuid = { version = "1.11.0", features = ["v4", "serde", "fast-rng", "macro-diagnostics"]}

@@ -1,4 +1,5 @@
 use axum::{extract::MatchedPath, http::Request, Router};
+use derive_builder::Builder;
 use sqlx::{postgres::PgPoolOptions, PgPool};
 use tower_http::trace::TraceLayer;
 use tracing::info_span;
@@ -7,27 +8,43 @@ mod errors;
 mod models;
 mod routes;
 
-#[derive(Clone)]
+#[derive(Builder, Clone)]
 pub struct AppConfig {
+    pub url: String,
     pub postgres_pool: PgPool,
 }
 
 impl AppConfig {
     pub async fn new() -> Self {
-        tracing::info!("Initializing postgres connection");
+        // TODO: move into async closure
+        tracing::info!(
+            "Initializing postgres connection to {}",
+            std::env::var("DATABASE_URL").expect("DATABASE_URL not set")
+        );
 
-        let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL not set");
-
-        let postgres_pool = PgPoolOptions::new()
-            .connect(&database_url)
-            .await
-            .expect("Postgres connection failed");
-
-        AppConfig { postgres_pool }
+        AppConfigBuilder::default()
+            .url(std::env::var("URL").expect("URL not set"))
+            // TODO: once https://github.com/rust-lang/rust/pull/132706 is merged use async closure
+            // .postgres_pool(async || {
+            //     tracing::info!("Initializing postgres connection");
+            //
+            //     PgPoolOptions::new()
+            //         .connect(&std::env::var("DATABASE_URL").expect("DATABASE_URL not set"))
+            //         .await
+            //         .expect("Postgres connection failed")
+            // })
+            .postgres_pool(
+                PgPoolOptions::new()
+                    .connect(&std::env::var("DATABASE_URL").expect("DATABASE_URL not set"))
+                    .await
+                    .expect("Postgres connection failed"),
+            )
+            .build()
+            .expect("Could not build app config")
     }
 
     pub async fn run_postgres_migrations(&self) {
-        tracing::info!("Running postgres migrations");
+        tracing::info!("Checking for postgres migrations");
 
         sqlx::migrate!()
             .run(&self.postgres_pool)
@@ -35,7 +52,7 @@ impl AppConfig {
             .expect("Postgres migrations failed");
     }
 
-    pub fn service(&self) -> Router {
+    pub fn router(&self) -> Router {
         Router::new()
             // Add routes
             .merge(routes::router())

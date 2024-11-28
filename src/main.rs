@@ -26,12 +26,14 @@ async fn main() {
     app_config.run_postgres_migrations().await;
 
     // Create and bind TCP listener
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080")
+    let listener = tokio::net::TcpListener::bind(&app_config.url)
         .await
         .expect("Could not create TcpListener");
 
+    // TODO: fix this for https
+    tracing::info!("Listening on http://{}", app_config.url);
     // Serve the application
-    axum::serve(listener, app_config.service())
+    axum::serve(listener, app_config.router())
         .await
         .expect("Could not serve the application");
 }

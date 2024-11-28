@@ -20,12 +20,10 @@ where
 }
 
 #[derive(Error, Debug)]
+#[error("app error: {0}")]
 pub enum AppError {
-    #[error("SqlxError: {0}")]
     SqlxError(#[from] sqlx::Error),
-    #[error("JsonRejection: {0}")]
     JsonRejection(#[from] axum::extract::rejection::JsonRejection),
-    #[error("HashError: {0}")]
     HashError(#[from] argon2::password_hash::Error),
     #[error("NotFound")]
     NotFound,

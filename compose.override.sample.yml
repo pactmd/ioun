@@ -1,0 +1,11 @@
+services:
+  postgres:
+    ports:
+      - 5432:5432
+
+  server:
+    build:
+      context: .
+      target: final
+    environment:
+      - RUST_LOG=debug
