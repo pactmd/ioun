@@ -17,7 +17,10 @@ pub struct AppConfig {
 impl AppConfig {
     pub async fn new() -> Self {
         // TODO: move into async closure
-        tracing::info!("Initializing postgres connection to {}", std::env::var("DATABASE_URL").expect("DATABASE_URL not set"));
+        tracing::info!(
+            "Initializing postgres connection to {}",
+            std::env::var("DATABASE_URL").expect("DATABASE_URL not set")
+        );
 
         AppConfigBuilder::default()
             .url(std::env::var("URL").expect("URL not set"))
@@ -34,9 +37,10 @@ impl AppConfig {
                 PgPoolOptions::new()
                     .connect(&std::env::var("DATABASE_URL").expect("DATABASE_URL not set"))
                     .await
-                    .expect("Postgres connection failed")
+                    .expect("Postgres connection failed"),
             )
-            .build().expect("Could not build app config")
+            .build()
+            .expect("Could not build app config")
     }
 
     pub async fn run_postgres_migrations(&self) {
