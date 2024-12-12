@@ -24,23 +24,8 @@ impl AppConfig {
         // Read environment variables from .env file if present
         dotenvy::dotenv().ok();
 
-        // TODO: move into async closure
-        tracing::info!(
-            "Initializing postgres connection to {}",
-            std::env::var("DATABASE_URL").expect("DATABASE_URL not set")
-        );
-
         AppConfigBuilder::default()
             .url(std::env::var("URL").expect("URL not set"))
-            // TODO: once https://github.com/rust-lang/rust/pull/132706 is merged use async closure
-            // .postgres_pool(async || {
-            //     tracing::info!("Initializing postgres connection");
-            //
-            //     PgPoolOptions::new()
-            //         .connect(&std::env::var("DATABASE_URL").expect("DATABASE_URL not set"))
-            //         .await
-            //         .expect("Postgres connection failed")
-            // })
             .postgres_pool({
                 let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL not set");
                 tracing::info!("Initializing postgres connection to {}", database_url);
@@ -63,7 +48,7 @@ impl AppConfig {
             })
             .session_expire({
                 let session_expire_string = std::env::var("SESSION_EXPIRE").expect("SESSION_EXPIRE not set");
-                tracing::info!("Setting session to expire in: {} seconds", session_expire_string);
+                tracing::info!("Setting sessions to expire in: {} seconds", session_expire_string);
 
                 session_expire_string.parse::<i64>().expect("Could not parse SESSION_EXPIRE")
             })
