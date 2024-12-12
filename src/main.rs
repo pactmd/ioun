@@ -19,6 +19,9 @@ async fn main() {
     // Create app config
     let app_config = ioun::AppConfig::new().await;
 
+    // Run database migrations
+    app_config.run_postgres_migrations().await;
+
     // Create and bind TCP listener
     let listener = tokio::net::TcpListener::bind(&app_config.url)
         .await
